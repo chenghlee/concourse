@@ -50,6 +50,14 @@ func (c Container) Attach(ctx context.Context, spec runtime.ProcessSpec, io runt
 	return c.waitForProcessCompletion(ctx, process)
 }
 
+func (c Container) SetProperty(name string, value string) error {
+	return c.GardenContainer.SetProperty(name, value)
+}
+
+func (c Container) Properties() (map[string]string, error) {
+	return c.GardenContainer.Properties()
+}
+
 func (c Container) waitForProcessCompletion(ctx context.Context, process garden.Process) (runtime.ProcessResult, error) {
 	type result struct {
 		exitStatus int

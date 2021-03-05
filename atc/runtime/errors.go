@@ -18,8 +18,6 @@ type ErrResourceScriptFailed struct {
 	Path       string
 	Args       []string
 	ExitStatus int
-
-	Stderr string
 }
 
 func (err ErrResourceScriptFailed) Error() string {
@@ -29,10 +27,6 @@ func (err ErrResourceScriptFailed) Error() string {
 		err.Args,
 		err.ExitStatus,
 	)
-
-	if len(err.Stderr) > 0 {
-		msg += "\n\nstderr:\n" + err.Stderr
-	}
 
 	return msg
 }
