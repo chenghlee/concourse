@@ -754,7 +754,7 @@ viewStepWithBody model session depth step body =
             [ viewStepHeader step
             , Html.div
                 [ style "display" "flex" ]
-                [ viewVersion step.version
+                [ viewVersion step
                 , case Maybe.Extra.or step.imageCheck step.imageGet of
                     Just _ ->
                         viewInitializationToggle step
@@ -947,11 +947,38 @@ viewTimestamp { id, lineNo, date, timeZone } =
         ]
 
 
-viewVersion : Maybe Version -> Html Message
-viewVersion version =
-    Maybe.withDefault Dict.empty version
-        |> Dict.map (always Html.text)
-        |> DictView.view []
+viewVersion : Step -> Concourse.PipelineIdentifier -> Html Message
+viewVersion step pid =
+    let
+        domId =
+            StepVersion step.id
+    in
+    case step.version of
+        Just version ->
+            Html.a
+                [ href <|
+                    Routes.toString <|
+                        Routes.Resource
+                            { id =
+                                { teamName = pid.teamName
+                                , pipelineName = pid.pipelineName
+                                , pipelineInstanceVars = pid.pipelineInstanceVars
+                                , resourceName = step.name
+                                }
+                            , page = Nothing
+                            , version = Just version
+                            }
+                , onMouseLeave <| Hover Nothing
+                , onMouseEnter <| Hover (Just domId)
+                , id (toHtmlID domId)
+                ]
+                [ DictView.view
+                    []
+                    (Dict.map (always Html.text) version)
+                ]
+
+        Nothing ->
+            Html.text ""
 
 
 viewMetadata : List MetadataField -> Html Message
@@ -1273,6 +1300,20 @@ tooltip model { hovered } =
         HoverState.Tooltip (StepState id) _ ->
             Dict.get id model.steps
                 |> Maybe.map stepDurationTooltip
+
+        HoverState.Tooltip (StepVersion _) _ ->
+            Just
+                { body =
+                    Html.div
+                        Styles.changedStepTooltip
+                        [ Html.text "view in resources page" ]
+                , attachPosition =
+                    { direction = Tooltip.Top
+                    , alignment = Tooltip.End
+                    }
+                , arrow = Just 5
+                , containerAttrs = Nothing
+                }
 
         _ ->
             Nothing

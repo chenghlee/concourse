@@ -16,6 +16,7 @@ module Routes exposing
     , showHighlight
     , toString
     , tokenToFlyRoute
+    , versionQueryParams
     )
 
 import Api.Pagination
@@ -447,10 +448,11 @@ toString route =
                 |> appendQuery (Api.Pagination.params page)
                 |> RouteBuilder.build
 
-        Resource { id, page } ->
+        Resource { id, page, version } ->
             pipelineIdBuilder id
                 |> appendPath [ "resources", id.resourceName ]
                 |> appendQuery (Api.Pagination.params page)
+                |> appendQuery (Maybe.withDefault Dict.empty version |> versionQueryParams)
                 |> RouteBuilder.build
 
         OneOffBuild { id, highlight } ->
@@ -575,6 +577,12 @@ extractQuery route =
 searchQueryParams : String -> List Builder.QueryParameter
 searchQueryParams q =
     [ Builder.string "search" q ]
+
+
+versionQueryParams : Concourse.Version -> List Builder.QueryParameter
+versionQueryParams version =
+    Concourse.versionQuery version
+        |> List.map (\q -> Builder.string "filter" q)
 
 
 pipelineIdBuilder : { r | teamName : String, pipelineName : String, pipelineInstanceVars : Concourse.InstanceVars } -> RouteBuilder
