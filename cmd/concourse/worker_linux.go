@@ -9,8 +9,10 @@ import (
 	"os/exec"
 	"os/user"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"syscall"
+
 
 	"code.cloudfoundry.org/lager"
 	"code.cloudfoundry.org/localip"
@@ -47,6 +49,9 @@ func (cmd *WorkerCommand) gardenRunner(logger lager.Logger) (atc.Worker, ifrit.R
 
 	worker := cmd.Worker.Worker()
 	worker.Platform = "linux"
+	if runtime.GOARCH != "amd64" {
+		worker.Platform += "-" + runtime.GOARCH
+	}
 
 	if cmd.Certs.Dir != "" {
 		worker.CertsPath = &cmd.Certs.Dir
